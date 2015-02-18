@@ -34,6 +34,7 @@ import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
 import android.provider.DocumentsContract.Root;
 import android.provider.DocumentsProvider;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -151,6 +152,9 @@ public class ExternalStorageProvider extends DocumentsProvider {
                         root.title = path.getName() + " - " + volume.getUserLabel();
                     } else {
                         root.title = path.getName();
+                    }
+                    if (TextUtils.isEmpty(root.title)) {
+                        root.title = volume.getUuid();
                     }
                 }
                 root.docId = getDocIdForFile(path);
