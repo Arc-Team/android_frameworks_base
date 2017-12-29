@@ -392,7 +392,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private static final String LOCKSCREEN_MEDIA_METADATA =
             "cmsecure:" + CMSettings.Secure.LOCKSCREEN_MEDIA_METADATA;
     private static final String SYSTEMUI_BURNIN_PROTECTION =
-            "cmsecure:" + CMSettings.System.SYSTEMUI_BURNIN_PROTECTION;
+            "cmsystem:" + CMSettings.System.SYSTEMUI_BURNIN_PROTECTION;
     private static final String NAVIGATION_BAR_VISIBLE =
             Settings.Secure.NAVIGATION_BAR_VISIBLE;
 
