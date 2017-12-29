@@ -4884,6 +4884,13 @@ public final class Settings {
         public static final String POCKET_JUDGE = "pocket_judge";
 
         /**
+         * Whether to allow adding/removing qs tiles with a tap
+         *
+         * @hide
+         */
+        public static final String QUICK_TILE_ADD = "qs_tile_tap_to_add";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
@@ -8154,7 +8161,13 @@ public final class Settings {
          *
          * @hide
          */
-        public static final String QS_COLUMNS = "qs_columns";
+        public static final String QS_COLUMNS_PORTRAIT = "qs_columns_portrait";
+
+        /**
+         * Number of qs columns on landscape orientation
+         * @hide
+         */
+        public static final String QS_COLUMNS_LANDSCAPE = "qs_columns_landscape";
 
         /**
          * Whether to sync the battery tile stile with the statusbar battery icon style
@@ -8187,6 +8200,33 @@ public final class Settings {
          * @hide
          */
         public static final String FORCE_AUTHORIZE_SUBSTRATUM_PACKAGES = "force_authorize_substratum_packages";
+
+        /**
+         * Whether dark theme is enabled or not
+         *
+         * @hide
+         */
+        public static final String THEME_PRIMARY_COLOR = "theme_primary_color";
+
+        /**
+         * Whether accent colors for themes are enabled or not
+         *
+         * @hide
+         */
+        public static final String THEME_ACCENT_COLOR = "theme_accent_color";
+
+        /**
+         * Whether accent colors or dark mode is supposed to show first
+         *
+         * @hide
+         */
+        public static final String THEME_SETTINGS_MODE = "theme_settings_mode";
+
+        /**
+         * Disable hw buttons
+         * @hide
+         */
+        public static final String HARDWARE_KEYS_DISABLE = "hardware_keys_disable";
 
         /**
          * This are the settings to be backed up.

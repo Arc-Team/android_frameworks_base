@@ -457,6 +457,7 @@ public class QSTileHost implements QSTile.Host, Tunable {
         else if (tileSpec.equals("work")) return new WorkModeTile(this);
         else if (tileSpec.equals("rotation")) return new RotationLockTile(this);
         else if (tileSpec.equals("flashlight")) return new FlashlightTile(this);
+        else if (tileSpec.equals("livedisplay")) return new LiveDisplayTile(this);
         else if (tileSpec.equals("location")) return new LocationTile(this);
         else if (tileSpec.equals("profiles")) return new ProfilesTile(this);
         else if (tileSpec.equals("cast")) return new CastTile(this);
@@ -482,7 +483,6 @@ public class QSTileHost implements QSTile.Host, Tunable {
         else if (tileSpec.equals("ime")) return new ImeTile(this);
         else if (tileSpec.equals("lte")) return  new LteTile(this);
         else if (tileSpec.equals("pulse")) return new PulseTile(this);
-        else if (tileSpec.equals("live_display")) return new LiveDisplayTile(this);
         else if (tileSpec.equals("compass")) return new CompassTile(this);
         else if (tileSpec.equals("pie")) return  new PieTile(this);
         // Intent tiles.

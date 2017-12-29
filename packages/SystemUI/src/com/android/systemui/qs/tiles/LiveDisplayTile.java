@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2015 The CyanogenMod Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.android.systemui.qs.tiles;
 
 import static cyanogenmod.hardware.LiveDisplayManager.FEATURE_MANAGED_OUTDOOR_MODE;
@@ -10,50 +26,42 @@ import android.content.res.TypedArray;
 import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.UserHandle;
+import android.provider.Settings;
 
 import com.android.internal.util.ArrayUtils;
 import com.android.systemui.R;
 import com.android.systemui.qs.QSTile;
 
-import com.android.internal.logging.MetricsProto.MetricsEvent;
+import org.cyanogenmod.internal.logging.CMMetricsLogger;
 
 import cyanogenmod.hardware.LiveDisplayManager;
 import cyanogenmod.providers.CMSettings;
-import cyanogenmod.app.CMContextConstants;
 
 /** Quick settings tile: LiveDisplay mode switcher **/
 public class LiveDisplayTile extends QSTile<LiveDisplayTile.LiveDisplayState> {
 
-    private static final Intent LIVEDISPLAY_SETTINGS =
-            new Intent(CMSettings.ACTION_LIVEDISPLAY_SETTINGS);
+    private static final Intent DISPLAY_SETTINGS = new Intent(Settings.ACTION_DISPLAY_SETTINGS);
 
-    private  LiveDisplayObserver mObserver;
+    private final LiveDisplayObserver mObserver;
     private String[] mEntries;
     private String[] mDescriptionEntries;
     private String[] mAnnouncementEntries;
     private String[] mValues;
-    private  int[] mEntryIconRes;
+    private final int[] mEntryIconRes;
 
     private boolean mListening;
 
     private int mDayTemperature;
 
-    private  boolean mOutdoorModeAvailable;
+    private final boolean mOutdoorModeAvailable;
 
-    private  LiveDisplayManager mLiveDisplay;
+    private final LiveDisplayManager mLiveDisplay;
 
     private static final int OFF_TEMPERATURE = 6500;
 
     public LiveDisplayTile(Host host) {
         super(host);
-        populateList();
-   }
 
-   private void populateList() {
-       if (!mContext.getPackageManager().hasSystemFeature(
-                CMContextConstants.Features.LIVEDISPLAY)) {
-                  return;
-        }
         Resources res = mContext.getResources();
         TypedArray typedArray = res.obtainTypedArray(R.array.live_display_drawables);
         mEntryIconRes = new int[typedArray.length()];
@@ -105,9 +113,23 @@ public class LiveDisplayTile extends QSTile<LiveDisplayTile.LiveDisplayState> {
     }
 
     @Override
-    public Intent getLongClickIntent() {
-        // TODO Auto-generated method stub
-        return null;
+    protected void handleLongClick() {
+        mHost.startActivityDismissingKeyguard(DISPLAY_SETTINGS);
+    }
+
+    @Override
+    protected void handleUpdateState(LiveDisplayState state, Object arg) {
+        updateEntries();
+        state.visible = true;
+        state.mode = arg == null ? getCurrentModeIndex() : (Integer) arg;
+        state.label = mEntries[state.mode];
+        state.icon = ResourceIcon.get(mEntryIconRes[state.mode]);
+        state.contentDescription = mDescriptionEntries[state.mode];
+    }
+
+    @Override
+    public int getMetricsCategory() {
+        return CMMetricsLogger.TILE_LIVE_DISPLAY;
     }
 
     @Override
@@ -116,33 +138,8 @@ public class LiveDisplayTile extends QSTile<LiveDisplayTile.LiveDisplayState> {
     }
 
     @Override
-    protected void handleLongClick() {
-        mHost.startActivityDismissingKeyguard(LIVEDISPLAY_SETTINGS);
-    }
-
-    @Override
-    protected void handleUpdateState(LiveDisplayState state, Object arg) {
-        updateEntries();
-        state.mode = arg == null ? getCurrentModeIndex() : (Integer) arg;
-        state.label = mEntries[state.mode];
-        state.icon = ResourceIcon.get(mEntryIconRes[state.mode]);
-        state.contentDescription = mDescriptionEntries[state.mode];
-    }
-
-    private boolean isLiveDisplaySupported(){
-        boolean isSupported = false;
-        isSupported = mLiveDisplay.getConfig().hasFeature(MODE_DAY);
-        return isSupported;
-    }
-
-    @Override
-    public boolean isAvailable(){
-        return isLiveDisplaySupported();
-    }
-
-    @Override
-    public int getMetricsCategory() {
-        return MetricsEvent.QUICK_SETTINGS;
+    public Intent getLongClickIntent() {
+        return DISPLAY_SETTINGS;
     }
 
     @Override
@@ -161,29 +158,20 @@ public class LiveDisplayTile extends QSTile<LiveDisplayTile.LiveDisplayState> {
             next = 0;
         }
 
-        int nextMode;
+        int nextMode = 0;
 
         while (true) {
             nextMode = Integer.valueOf(mValues[next]);
-            if (nextMode == MODE_OUTDOOR) {
-                // Only accept outdoor mode if it's supported by the hardware
-                if (mOutdoorModeAvailable) {
-                    break;
-                }
-            } else if (nextMode == MODE_DAY) {
-                // Skip the day setting if it's the same as the off setting
-                if (mDayTemperature != OFF_TEMPERATURE) {
-                    break;
+            // Skip outdoor mode if it's unsupported, and skip the day setting
+            // if it's the same as the off setting
+            if ((!mOutdoorModeAvailable && nextMode == MODE_OUTDOOR) ||
+                    (mDayTemperature == OFF_TEMPERATURE && nextMode == MODE_DAY)) {
+                next++;
+                if (next >= mValues.length) {
+                    next = 0;
                 }
             } else {
-                // every other mode doesn't have any preconstraints
                 break;
-            }
-
-            // If we come here, we decided to skip the mode
-            next++;
-            if (next >= mValues.length) {
-                next = 0;
             }
         }
 

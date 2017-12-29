@@ -713,6 +713,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     // User defined bar visibility, regardless of factory configuration
     boolean mNavbarVisible = false;
+
+    // User defined hw key config
+    boolean mHardwareKeysDisable = false;
+
     // Pie
     boolean mPieState;
 
@@ -1182,6 +1186,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ANBI_ENABLED), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
+                    Settings.Secure.HARDWARE_KEYS_DISABLE), false, this,
                     UserHandle.USER_ALL);
             updateSettings();
         }
@@ -2560,6 +2567,17 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mShortPressWindowBehavior = SHORT_PRESS_WINDOW_PICTURE_IN_PICTURE;
         }
 
+        if (mHardwareKeysDisable) {
+            mLongPressOnHomeBehavior = KEY_ACTION_NOTHING;
+            mDoubleTapOnHomeBehavior = KEY_ACTION_NOTHING;
+            mPressOnMenuBehavior = KEY_ACTION_NOTHING;
+            mLongPressOnMenuBehavior = KEY_ACTION_NOTHING;
+            mPressOnAssistBehavior = KEY_ACTION_NOTHING;
+            mLongPressOnAssistBehavior = KEY_ACTION_NOTHING;
+            mPressOnAppSwitchBehavior = KEY_ACTION_NOTHING;
+            mLongPressOnAppSwitchBehavior = KEY_ACTION_NOTHING;
+        }
+
         mNavBarOpacityMode = res.getInteger(
                 com.android.internal.R.integer.config_navBarOpacityMode);
     }
@@ -2745,18 +2763,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 updateWakeGestureListenerLp();
             }
 
-            boolean doShowNavbar = Settings.Secure.getIntForUser(resolver,
+            mNavbarVisible = Settings.Secure.getIntForUser(resolver,
                     Settings.Secure.NAVIGATION_BAR_VISIBLE,
                     DUActionUtils.hasNavbarByDefault(mContext) ? 1 : 0,
                     UserHandle.USER_CURRENT) == 1;
-            if (doShowNavbar != mNavbarVisible) {
-                mNavbarVisible = doShowNavbar;
-                if (mCMHardware.isSupported(CMHardwareManager.FEATURE_KEY_DISABLE)) {
-                    mCMHardware.set(CMHardwareManager.FEATURE_KEY_DISABLE, mNavbarVisible);
-                }
-            }
 
             updateNavigationBarSize();
+
+            mHardwareKeysDisable = Settings.Secure.getIntForUser(resolver,
+                    Settings.Secure.HARDWARE_KEYS_DISABLE,
+                    DUActionUtils.hasNavbarByDefault(mContext) ? 1 : 0,
+                    UserHandle.USER_CURRENT) == 1;
+
+            mCMHardware.set(CMHardwareManager.FEATURE_KEY_DISABLE, mHardwareKeysDisable);
 
             updateKeyAssignments();
 
@@ -4539,7 +4558,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 if (DEBUG_INPUT) {
                     Log.d(TAG, "Dispatching key event " + event + " to handler " + handler);
                 }
-                if (handler.handleKeyEvent(event)) {
+                event = handler.handleKeyEvent(event);
+                if (event == null) {
                     if (mIsDeviceInPocket) {
                         return false;
                     }
