@@ -50,7 +50,7 @@ public final class PhoneStatusBarTransitions extends BarTransitions {
         mSignalCluster = mView.findViewById(R.id.signal_cluster);
         mBattery = mView.findViewById(R.id.battery);
         mClock = mView.findViewById(R.id.clock);
-        mNetworkTraffic = mView.findViewById(R.id.networkTraffic);
+        mNetworkTraffic = mView.findViewById(R.id.network_traffic);
         mCrDroidLogoRight = mView.findViewById(R.id.crdroid_logo);
         mMinitBattery = mView.findViewById(R.id.minitBattery);
         mWeatherRight = mView.findViewById(R.id.weather_temp);
