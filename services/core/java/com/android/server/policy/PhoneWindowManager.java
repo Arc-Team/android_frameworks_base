@@ -1141,8 +1141,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             resolver.registerContentObserver(Settings.Global.getUriFor(
                     Settings.Global.POLICY_CONTROL), false, this,
                     UserHandle.USER_ALL);
-            resolver.registerContentObserver(LineageSettings.System.getUriFor(
-                    LineageSettings.System.ACCELEROMETER_ROTATION_ANGLES), false, this,
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.ACCELEROMETER_ROTATION_ANGLES), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(LineageSettings.System.getUriFor(
                     LineageSettings.System.TORCH_LONG_PRESS_POWER_GESTURE), false, this,
@@ -3161,8 +3161,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 carbonCustomGestureFingers, carbonCustomGestureDown + carbonCustomGestureFingers,
                 CarbonGesturesListener.Directions.DOWN, carbonCustomGestureDownPkg);
 
-            mUserRotationAngles = LineageSettings.System.getInt(resolver,
-                    LineageSettings.System.ACCELEROMETER_ROTATION_ANGLES, -1);
+            mUserRotationAngles = Settings.System.getInt(resolver,
+                    Settings.System.ACCELEROMETER_ROTATION_ANGLES, -1);
 
             boolean useEdgeService = true;
             if (useEdgeService ^ mUsingEdgeGestureServiceForGestures && mSystemReady) {
