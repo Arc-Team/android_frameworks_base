@@ -4353,18 +4353,16 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
                 quality = DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED;
             }
             final PasswordMetrics metrics = PasswordMetrics.computeForPassword(password);
-            if (quality != DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED) {
-                final int realQuality = metrics.quality;
-                if (realQuality < quality
-                        && quality != DevicePolicyManager.PASSWORD_QUALITY_COMPLEX) {
-                    Slog.w(LOG_TAG, "resetPassword: password quality 0x"
-                            + Integer.toHexString(realQuality)
-                            + " does not meet required quality 0x"
-                            + Integer.toHexString(quality));
-                    return false;
-                }
-                quality = Math.max(realQuality, quality);
+            final int realQuality = metrics.quality;
+            if (realQuality < quality
+                    && quality != DevicePolicyManager.PASSWORD_QUALITY_COMPLEX) {
+                Slog.w(LOG_TAG, "resetPassword: password quality 0x"
+                        + Integer.toHexString(realQuality)
+                        + " does not meet required quality 0x"
+                        + Integer.toHexString(quality));
+                return false;
             }
+            quality = Math.max(realQuality, quality);
             int length = getPasswordMinimumLength(null, userHandle, /* parent */ false);
             if (password.length() < length) {
                 Slog.w(LOG_TAG, "resetPassword: password length " + password.length()
@@ -4441,8 +4439,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
         try {
             if (token == null) {
                 if (!TextUtils.isEmpty(password)) {
-                    mLockPatternUtils.saveLockPassword(
-                            password, null, Math.max(quality, getPasswordQuality(password)), userHandle);
+                    mLockPatternUtils.saveLockPassword(password, null, quality, userHandle);
                 } else {
                     mLockPatternUtils.clearLock(null, userHandle);
                 }
@@ -4451,8 +4448,7 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
                 result = mLockPatternUtils.setLockCredentialWithToken(password,
                         TextUtils.isEmpty(password) ? LockPatternUtils.CREDENTIAL_TYPE_NONE
                                 : LockPatternUtils.CREDENTIAL_TYPE_PASSWORD,
-                                Math.max(quality, getPasswordQuality(password)),
-                                tokenHandle, token, userHandle);
+                        quality, tokenHandle, token, userHandle);
             }
             boolean requireEntry = (flags & DevicePolicyManager.RESET_PASSWORD_REQUIRE_ENTRY) != 0;
             if (requireEntry) {
@@ -4470,16 +4466,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             mInjector.binderRestoreCallingIdentity(ident);
         }
         return result;
-    }
-
-    private int getPasswordQuality(@NonNull String password) {
-        for (int i = 0; i < password.length(); i++) {
-            if (java.lang.Character.isDigit(password.charAt(i)) == false) {
-                return DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC;
-            }
-        }
-
-        return DevicePolicyManager.PASSWORD_QUALITY_NUMERIC;
     }
 
     private boolean isLockScreenSecureUnchecked(int userId) {
@@ -5844,9 +5830,12 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             // Only system user can set storage encryption
             if (userHandle != UserHandle.USER_SYSTEM) {
                 Slog.w(LOG_TAG, "Only owner/system user is allowed to set storage encryption. User "
-                        + userHandle + " is not permitted.");
-                return DevicePolicyManager.ENCRYPTION_STATUS_UNSUPPORTED;
+                        + UserHandle.getCallingUserId() + " is not permitted.");
+                return 0;
             }
+
+            ActiveAdmin ap = getActiveAdminForCallerLocked(who,
+                    DeviceAdminInfo.USES_ENCRYPTED_STORAGE);
 
             // Quick exit:  If the filesystem does not support encryption, we can exit early.
             if (!isEncryptionSupported()) {
@@ -5854,8 +5843,6 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
             }
 
             // (1) Record the value for the admin so it's sticky
-            ActiveAdmin ap = getActiveAdminForCallerLocked(who,
-                    DeviceAdminInfo.USES_ENCRYPTED_STORAGE);
             if (ap.encryptionRequested != encrypt) {
                 ap.encryptionRequested = encrypt;
                 saveSettingsLocked(userHandle);
