@@ -550,7 +550,7 @@ public class PieMenu extends RelativeLayout implements TunerService.Tunable {
         mStatusIconSize = mResources.getDimensionPixelSize(R.dimen.pie_status_item_size);
         mSsidText = getWifiSsid();
         mNetworkText = getNetworkText(mSsidText);
-        createSignalIcons();
+        //createSignalIcons();
 
         // Set colors
         mToggleBackground.setColor(mDarkThemeEnabled ? mDarkSnappointColor : mForegroundColor);
@@ -1737,7 +1737,7 @@ public class PieMenu extends RelativeLayout implements TunerService.Tunable {
         public void setWifiIndicators(boolean enabled, IconState statusIcon, IconState qsIcon,
                 boolean activityIn, boolean activityOut, String description, boolean isTransient) {
             mWifiIconResId = qsIcon == null ? 0 : qsIcon.icon;
-            createSignalIcons();
+            //createSignalIcons();
         }
 
         public void setMobileDataIndicators(IconState statusIcon, IconState qsIcon, int statusType,
@@ -1746,7 +1746,7 @@ public class PieMenu extends RelativeLayout implements TunerService.Tunable {
                 boolean roaming, boolean isMobileIms) {
             mSubId = subId;
             mNetworkIconResId = qsIcon == null ? 0 : qsIcon.icon;
-            createSignalIcons();
+            //createSignalIcons();
         }
 
         @Override
